@@ -1,0 +1,197 @@
+---
+openapi: 3.0.1
+info:
+  title: API V1
+  version: v1
+servers:
+- url: http://localhost:3000
+components:
+  parameters:
+    doctor_id:
+      name: doctor_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 1
+    patient_id:
+      name: patient_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 1
+  schemas:
+    Doctor:
+      type: object
+      required:
+      - id
+      - first_name
+      - last_name
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+          readOnly: true
+        first_name:
+          type: string
+          example: Иван
+        last_name:
+          type: string
+          example: Иванов
+        middle_name:
+          type: string
+          example: Иванович
+    Patient:
+      type: object
+      required:
+      - id
+      - first_name
+      - last_name
+      - birthday
+      - gender
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+          readOnly: true
+        first_name:
+          type: string
+          example: Петр
+        last_name:
+          type: string
+          example: Петров
+        middle_name:
+          type: string
+          example: Петрович
+        birthday:
+          type: string
+          format: date
+          example: '1990-01-01'
+        gender:
+          type: boolean
+          description: 'Пол пациента: true = мужской, false = женский'
+          example: true
+        height:
+          type: integer
+          example: 180
+        weight:
+          type: integer
+          example: 75
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: '2025-09-26T22:56:19Z'
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: '2025-09-26T22:56:19Z'
+paths:
+  "/api/v1/doctors":
+    get:
+      summary: list doctors
+      responses:
+        '200':
+          description: successful
+    post:
+      summary: create doctor
+      responses:
+        '200':
+          description: successful
+  "/api/v1/doctors/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: show doctor
+      responses:
+        '200':
+          description: successful
+    patch:
+      summary: update doctor
+      responses:
+        '200':
+          description: successful
+    put:
+      summary: update doctor
+      responses:
+        '200':
+          description: successful
+    delete:
+      summary: delete doctor
+      responses:
+        '200':
+          description: successful
+  "/api/v1/patients":
+    get:
+      summary: Список пациентов
+      tags:
+      - patients
+      responses:
+        '200':
+          description: Список пациентов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/Patient"
+    post:
+      summary: Создать пациента
+      tags:
+      - patients
+      parameters: []
+      responses:
+        '201':
+          description: Пациент создан
+        '422':
+          description: Некорректные данные
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Patient"
+  "/api/v1/patients/{patient_id}":
+    get:
+      summary: Показать пациента
+      tags:
+      - patients
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Пациент найден
+        '404':
+          description: Пациент не найден
+    delete:
+      summary: Удалить пациента
+      tags:
+      - patients
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: Пациент удалён
+        '404':
+          description: Пациент не найден

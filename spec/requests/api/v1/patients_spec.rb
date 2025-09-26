@@ -1,0 +1,142 @@
+require "swagger_helper"
+
+RSpec.describe "api/v1/patients", type: :request do
+  path "/api/v1/patients" do
+    get("Список пациентов") do
+      tags "patients"
+      produces "application/json"
+
+      response(200, "Список пациентов") do
+        schema type: :object,
+          properties: {
+            data: {
+              type: :array,
+              items: {"$ref" => "#/components/schemas/Patient"}
+            }
+          }
+
+        let!(:patient) do
+          Patient.create!(
+            first_name: "Иван",
+            middle_name: "Иванович",
+            last_name: "Петров",
+            birthday: Date.new(1990, 1, 1),
+            gender: true,
+            height: 180,
+            weight: 75
+          )
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          data = body["data"].first
+
+          expect(data["id"]).to eq(patient.id)
+          expect(data["first_name"]).to eq("Иван")
+          expect(data["middle_name"]).to eq("Иванович")
+          expect(data["last_name"]).to eq("Петров")
+          expect(data["gender"]).to eq(true)
+        end
+      end
+    end
+
+    post("Создать пациента") do
+      tags "patients"
+      consumes "application/json"
+      produces "application/json"
+      parameter name: :patient, in: :body, schema: {"$ref" => "#/components/schemas/Patient"}
+
+      response(201, "Пациент создан") do
+        let(:patient) do
+          {
+            first_name: "Петр",
+            middle_name: "Петрович",
+            last_name: "Сидоров",
+            birthday: "1995-05-05",
+            gender: true,
+            height: 175,
+            weight: 70
+          }
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          data = body["data"]
+
+          expect(data["first_name"]).to eq("Петр")
+          expect(data["middle_name"]).to eq("Петрович")
+          expect(data["last_name"]).to eq("Сидоров")
+        end
+      end
+
+      response(422, "Некорректные данные") do
+        let(:patient) { { first_name: "" } }
+        run_test!
+      end
+    end
+  end
+
+  path "/api/v1/patients/{patient_id}" do
+    get("Показать пациента") do
+      tags "patients"
+      produces "application/json"
+      parameter name: :patient_id, in: :path, type: :integer
+
+      let!(:patient) do
+        Patient.create!(
+          first_name: "Иван",
+          middle_name: "Иванович",
+          last_name: "Петров",
+          birthday: Date.new(1990, 1, 1),
+          gender: true,
+          height: 180,
+          weight: 75
+        )
+      end
+      let(:patient_id) { patient.id }
+
+      response(200, "Пациент найден") do
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          data = body["data"]
+          expect(data["id"]).to eq(patient.id)
+        end
+      end
+
+      response(404, "Пациент не найден") do
+        let(:patient_id) { 0 }
+        run_test!
+      end
+    end
+
+    delete("Удалить пациента") do
+      tags "patients"
+      produces "application/json"
+      parameter name: :patient_id, in: :path, type: :integer
+
+      let!(:patient) do
+        Patient.create!(
+          first_name: "Иван",
+          middle_name: "Иванович",
+          last_name: "Петров",
+          birthday: Date.new(1990, 1, 1),
+          gender: true,
+          height: 180,
+          weight: 75
+        )
+      end
+      let(:patient_id) { patient.id }
+
+      response(204, "Пациент удалён") do
+        run_test! do
+          expect(Patient.find_by(id: patient_id)).to be_nil
+        end
+      end
+
+      response(404, "Пациент не найден") do
+        let(:patient_id) { 0 }
+        run_test!
+      end
+    end
+  end
+end

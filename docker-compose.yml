@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:15
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: myapp
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: myapp_development
+  web:
+    build: .
+    command: bash -c "rm -f tmp/pids/server.pid && rails server -b 0.0.0.0"
+    volumes:
+      - .:/opt/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_HOST: db
+      DATABASE_USERNAME: myapp
+      DATABASE_PASSWORD: password
+      DATABASE_NAME: myapp_development
+volumes:
+  db_data:
+
