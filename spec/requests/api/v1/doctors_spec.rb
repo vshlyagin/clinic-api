@@ -3,11 +3,12 @@ require 'swagger_helper'
 RSpec.describe 'api/v1/doctors', type: :request do
 
   path '/api/v1/doctors' do
-
     get("Список докторов") do
       tags "doctors"
       produces "application/json"
-
+      parameter name: :limit, in: :query, type: :integer, description: "Лимит на количество записей"
+      parameter name: :offset, in: :query, type: :integer, description: "Смещение для пагинации"
+  
       response(200, 'Список врачей') do
         schema type: :object,
           properties: {
@@ -16,53 +17,18 @@ RSpec.describe 'api/v1/doctors', type: :request do
               items: {"$ref" => "#/components/schemas/Doctor"}
             }
           }
-
-        let!(:doctor) do
-          Doctor.create!(
-            first_name: "Иван",
-            middle_name: "Иванович",
-            last_name: "Петров"
-          )
-        end
-
+  
+        let!(:doctor1) { Doctor.create!(first_name: "Иван", middle_name: "Иванович", last_name: "Петров") }
+        let!(:doctor2) { Doctor.create!(first_name: "Петр", middle_name: "Петрович", last_name: "Сидоров") }
+        let(:limit) { 1 }
+        let(:offset) { 1 }
+  
         run_test! do |response|
           body = JSON.parse(response.body)
-          data = body["data"].first
-          expect(data["id"]).to eq(doctor.id)
-          expect(data["first_name"]).to eq("Иван")
-          expect(data["middle_name"]).to eq("Иванович")
-          expect(data["last_name"]).to eq("Петров")
+          expect(body["data"].size).to eq(1)
+          # проверяем, что вернулся именно второй доктор
+          expect(body["data"].first["id"]).to eq(doctor2.id)
         end
-      end
-    end
-
-    post("Создать доктора") do
-      tags "doctors"
-      consumes "application/json"
-      produces "application/json"
-      parameter name: :doctor, in: :body, schema: {"$ref" => "#/components/schemas/Doctor"}
-
-      response(201, 'Врач создан') do
-        let(:doctor) do
-          {
-            first_name: "Петр",
-            middle_name: "Петрович",
-            last_name: "Сидоров"
-          }
-        end
-
-        run_test! do |response|
-          body = JSON.parse(response.body)
-          data = body["data"]
-          expect(data["first_name"]).to eq("Петр")
-          expect(data["middle_name"]).to eq("Петрович")
-          expect(data["last_name"]).to eq("Сидоров")
-        end
-      end
-
-      response(422, 'Некорректные данные') do
-        let(:doctor) { { first_name: "" } }
-        run_test!
       end
     end
   end

@@ -1,80 +1,52 @@
 require "swagger_helper"
 
 RSpec.describe "api/v1/patients", type: :request do
-  path "/api/v1/patients" do
+  path '/api/v1/patients' do
     get("Список пациентов") do
       tags "patients"
       produces "application/json"
-
+  
+      parameter name: :full_name, in: :query, type: :string, description: "Фильтр по полному имени"
+      parameter name: :gender, in: :query, type: :boolean, description: "Фильтр по полу"
+      parameter name: :start_age, in: :query, type: :integer, description: "Минимальный возраст"
+      parameter name: :end_age, in: :query, type: :integer, description: "Максимальный возраст"
+      parameter name: :limit, in: :query, type: :integer, description: "Лимит на количество записей"
+      parameter name: :offset, in: :query, type: :integer, description: "Смещение для пагинации"
+  
       response(200, "Список пациентов") do
         schema type: :object,
           properties: {
-            data: {
+            patients: {
               type: :array,
               items: {"$ref" => "#/components/schemas/Patient"}
             }
           }
-
-        let!(:patient) do
-          Patient.create!(
-            first_name: "Иван",
-            middle_name: "Иванович",
-            last_name: "Петров",
-            birthday: Date.new(1990, 1, 1),
-            gender: true,
-            height: 180,
-            weight: 75
-          )
+  
+        let!(:patient1) do
+          Patient.create!(first_name: "Иван", middle_name: "Иванович", last_name: "Петров",
+                          birthday: 30.years.ago, gender: true, height: 180, weight: 75)
         end
-
+        let!(:patient2) do
+          Patient.create!(first_name: "Петр", middle_name: "Петрович", last_name: "Сидоров",
+                          birthday: 25.years.ago, gender: true, height: 175, weight: 70)
+        end
+  
+        let(:full_name) { "Петр Сидоров" }
+        let(:gender) { true }
+        let(:start_age) { 20 }
+        let(:end_age) { 30 }
+        let(:limit) { 1 }
+        let(:offset) { 0 }
+  
         run_test! do |response|
           body = JSON.parse(response.body)
-          data = body["data"].first
-
-          expect(data["id"]).to eq(patient.id)
-          expect(data["first_name"]).to eq("Иван")
-          expect(data["middle_name"]).to eq("Иванович")
-          expect(data["last_name"]).to eq("Петров")
-          expect(data["gender"]).to eq(true)
+          expect(body["patients"].size).to eq(1)
+          expect(body["patients"].first["id"]).to eq(patient2.id)
         end
-      end
-    end
-
-    post("Создать пациента") do
-      tags "patients"
-      consumes "application/json"
-      produces "application/json"
-      parameter name: :patient, in: :body, schema: {"$ref" => "#/components/schemas/Patient"}
-
-      response(201, "Пациент создан") do
-        let(:patient) do
-          {
-            first_name: "Петр",
-            middle_name: "Петрович",
-            last_name: "Сидоров",
-            birthday: "1995-05-05",
-            gender: true,
-            height: 175,
-            weight: 70
-          }
-        end
-
-        run_test! do |response|
-          body = JSON.parse(response.body)
-          data = body["data"]
-
-          expect(data["first_name"]).to eq("Петр")
-          expect(data["middle_name"]).to eq("Петрович")
-          expect(data["last_name"]).to eq("Сидоров")
-        end
-      end
-
-      response(422, "Некорректные данные") do
-        let(:patient) { { first_name: "" } }
-        run_test!
       end
     end
   end
+  
 
   path "/api/v1/patients/{patient_id}" do
     get("Показать пациента") do

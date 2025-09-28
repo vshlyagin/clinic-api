@@ -98,6 +98,17 @@ paths:
       summary: Список докторов
       tags:
       - doctors
+      parameters:
+      - name: limit
+        in: query
+        description: Лимит на количество записей
+        schema:
+          type: integer
+      - name: offset
+        in: query
+        description: Смещение для пагинации
+        schema:
+          type: integer
       responses:
         '200':
           description: Список врачей
@@ -110,21 +121,6 @@ paths:
                     type: array
                     items:
                       "$ref": "#/components/schemas/Doctor"
-    post:
-      summary: Создать доктора
-      tags:
-      - doctors
-      parameters: []
-      responses:
-        '201':
-          description: Врач создан
-        '422':
-          description: Некорректные данные
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/Doctor"
   "/api/v1/doctors/{doctor_id}":
     parameters:
     - name: doctor_id
@@ -168,6 +164,37 @@ paths:
       summary: Список пациентов
       tags:
       - patients
+      parameters:
+      - name: full_name
+        in: query
+        description: Фильтр по полному имени
+        schema:
+          type: string
+      - name: gender
+        in: query
+        description: Фильтр по полу
+        schema:
+          type: boolean
+      - name: start_age
+        in: query
+        description: Минимальный возраст
+        schema:
+          type: integer
+      - name: end_age
+        in: query
+        description: Максимальный возраст
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        description: Лимит на количество записей
+        schema:
+          type: integer
+      - name: offset
+        in: query
+        description: Смещение для пагинации
+        schema:
+          type: integer
       responses:
         '200':
           description: Список пациентов
@@ -176,25 +203,10 @@ paths:
               schema:
                 type: object
                 properties:
-                  data:
+                  patients:
                     type: array
                     items:
                       "$ref": "#/components/schemas/Patient"
-    post:
-      summary: Создать пациента
-      tags:
-      - patients
-      parameters: []
-      responses:
-        '201':
-          description: Пациент создан
-        '422':
-          description: Некорректные данные
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/Patient"
   "/api/v1/patients/{patient_id}":
     get:
       summary: Показать пациента
