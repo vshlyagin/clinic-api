@@ -225,4 +225,49 @@ RSpec.describe "api/v1/patients", type: :request do
       end
     end
   end
+
+  path "/api/v1/patients/{patient_id}/bmr_history" do
+    get("История расчетов BMR") do
+      tags "patients"
+      produces "application/json"
+      parameter name: :patient_id, in: :path, type: :integer
+      parameter name: :limit, in: :query, type: :integer, description: "Лимит на количество записей"
+      parameter name: :offset, in: :query, type: :integer, description: "Смещение для пагинации"
+  
+      let!(:patient) do
+        p = Patient.create!(
+          first_name: "Иван",
+          middle_name: "Иванович",
+          last_name: "Петров",
+          birthday: Date.new(1990, 1, 1),
+          gender: true,
+          height: 180,
+          weight: 75
+        )
+        # создаём несколько расчетов
+        %w[mifflin harris mifflin].each do |formula|
+          p.bmr_calculations.create!(formula: formula, result: p.calculate_bmr(formula))
+        end
+        p
+      end
+      let(:patient_id) { patient.id }
+  
+      response(200, "История расчетов BMR") do
+        let(:limit) { 2 }
+        let(:offset) { 0 }
+  
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data["patient_id"]).to eq(patient.id)
+          expect(data["bmr_history"].size).to eq(2)
+          expect(data["bmr_history"].first["formula"]).to be_in(%w[mifflin harris])
+        end
+      end
+  
+      response(404, "Пациент не найден") do
+        let(:patient_id) { 0 }
+        run_test!
+      end
+    end
+  end  
 end

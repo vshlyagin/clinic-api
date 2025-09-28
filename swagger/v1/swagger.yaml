@@ -273,3 +273,29 @@ paths:
                   example: mifflin/harris
               required:
               - formula
+  "/api/v1/patients/{patient_id}/bmr_history":
+    get:
+      summary: История расчетов BMR
+      tags:
+      - patients
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        description: Лимит на количество записей
+        schema:
+          type: integer
+      - name: offset
+        in: query
+        description: Смещение для пагинации
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: История расчетов BMR
+        '404':
+          description: Пациент не найден

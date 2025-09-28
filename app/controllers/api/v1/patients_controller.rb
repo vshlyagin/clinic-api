@@ -52,6 +52,14 @@ class Api::V1::PatientsController < ApplicationController
     render json: { error: e.message }, status: :unprocessable_entity
   end
 
+  def bmr_history
+    history = patient.bmr_calculations.order(created_at: :desc)
+    history = history.limit(params[:limit]) if params[:limit].present?
+    history = history.offset(params[:offset]) if params[:offset].present?
+
+    render json: { patient_id: patient.id, bmr_history: history }
+  end
+
   private
 
   def patient_params
@@ -62,7 +70,7 @@ class Api::V1::PatientsController < ApplicationController
     @patient ||= case action_name
                  when "create"
                    Patient.new
-                 when "update", "show", "destroy", "calculate_bmr"
+                 when "update", "show", "destroy", "calculate_bmr", "bmr_history"
                    Patient.find(params[:id])
                  end
     @patient.assign_attributes(patient_params) if action_name == "create" || action_name == "update"

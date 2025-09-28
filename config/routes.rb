@@ -7,7 +7,10 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :doctors
       resources :patients do
-        post :calculate_bmr, on: :member
+        member do 
+          post :calculate_bmr
+          get :bmr_history
+        end
       end
     end
   end
