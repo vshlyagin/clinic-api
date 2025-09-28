@@ -183,7 +183,12 @@ RSpec.describe "api/v1/patients", type: :request do
       parameter name: :body, in: :body, schema: {
         type: :object,
         properties: {
-          formula: { type: :string, enum: %w[mifflin harris] }
+          formula: {
+            type: :string,
+            enum: %w[mifflin harris],
+            description: 'Выберите формулу: mifflin – Миффлина–Сан Жеора, harris – Харриса–Бенедикта',
+            example: 'mifflin/harris'
+          }
         },
         required: %w[formula]
       }

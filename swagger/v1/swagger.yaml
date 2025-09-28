@@ -268,5 +268,8 @@ paths:
                   enum:
                   - mifflin
                   - harris
+                  description: 'Выберите формулу: mifflin – Миффлина–Сан Жеора, harris
+                    – Харриса–Бенедикта'
+                  example: mifflin/harris
               required:
               - formula
