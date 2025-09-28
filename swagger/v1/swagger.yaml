@@ -95,43 +95,74 @@ components:
 paths:
   "/api/v1/doctors":
     get:
-      summary: list doctors
+      summary: Список докторов
+      tags:
+      - doctors
       responses:
         '200':
-          description: successful
+          description: Список врачей
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/Doctor"
     post:
-      summary: create doctor
+      summary: Создать доктора
+      tags:
+      - doctors
+      parameters: []
       responses:
-        '200':
-          description: successful
-  "/api/v1/doctors/{id}":
+        '201':
+          description: Врач создан
+        '422':
+          description: Некорректные данные
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Doctor"
+  "/api/v1/doctors/{doctor_id}":
     parameters:
-    - name: id
+    - name: doctor_id
       in: path
-      description: id
       required: true
       schema:
-        type: string
+        type: integer
     get:
-      summary: show doctor
+      summary: Показать доктора
+      tags:
+      - doctors
       responses:
         '200':
-          description: successful
+          description: Врач найден
+        '404':
+          description: Врач не найден
     patch:
-      summary: update doctor
+      summary: Обновить доктора
+      tags:
+      - doctors
+      parameters: []
       responses:
         '200':
-          description: successful
-    put:
-      summary: update doctor
-      responses:
-        '200':
-          description: successful
+          description: Врач обновлён
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Doctor"
     delete:
-      summary: delete doctor
+      summary: Удалить доктора
+      tags:
+      - doctors
       responses:
-        '200':
-          description: successful
+        '204':
+          description: Врач удалён
+        '404':
+          description: Врач не найден
   "/api/v1/patients":
     get:
       summary: Список пациентов
@@ -180,6 +211,21 @@ paths:
           description: Пациент найден
         '404':
           description: Пациент не найден
+    patch:
+      summary: Обновить пациента
+      tags:
+      - patients
+      parameters: []
+      responses:
+        '200':
+          description: Пациент обновлён
+        '422':
+          description: Некорректные данные
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Patient"
     delete:
       summary: Удалить пациента
       tags:

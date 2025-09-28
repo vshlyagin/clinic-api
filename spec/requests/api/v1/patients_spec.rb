@@ -109,6 +109,40 @@ RSpec.describe "api/v1/patients", type: :request do
       end
     end
 
+    patch("Обновить пациента") do
+      tags "patients"
+      consumes "application/json"
+      produces "application/json"
+      parameter name: :patient, in: :body, schema: {"$ref" => "#/components/schemas/Patient"}
+
+      let!(:patient) do
+        Patient.create!(
+          first_name: "Иван",
+          middle_name: "Иванович",
+          last_name: "Петров",
+          birthday: Date.new(1990, 1, 1),
+          gender: true,
+          height: 180,
+          weight: 75
+        )
+      end
+      let(:patient_id) { patient.id }
+      let(:patient) { { first_name: "Пётр", weight: 80 } }
+
+      response(200, "Пациент обновлён") do
+        run_test! do
+          updated = Patient.find(patient_id)
+          expect(updated.first_name).to eq("Пётр")
+          expect(updated.weight).to eq(80)
+        end
+      end
+
+      response(422, "Некорректные данные") do
+        let(:patient) { { first_name: "" } }
+        run_test!
+      end
+    end
+
     delete("Удалить пациента") do
       tags "patients"
       produces "application/json"
