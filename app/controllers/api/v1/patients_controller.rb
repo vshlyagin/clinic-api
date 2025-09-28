@@ -1,6 +1,13 @@
 class Api::V1::PatientsController < ApplicationController
   def index
     patients = Patient.all
+      .by_full_name(params[:full_name])
+      .by_gender(params[:gender])
+      .by_age(params[:start_age], params[:end_age])
+
+    patients = patients.limit(params[:limit]) if params[:limit].present?
+    patients = patients.offset(params[:offset]) if params[:offset].present?
+
     render json: { patients: patients }
   end
 
