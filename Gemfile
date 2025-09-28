@@ -9,11 +9,16 @@ gem 'rswag-api'
 gem 'rswag-ui'
 
 group :development, :test do
+  gem 'dotenv-rails'
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
   gem "brakeman", require: false
   gem 'rspec-rails'
   gem 'rswag-specs'
   gem "rubocop-rails-omakase", require: false
+end
+
+group :test do
+  gem 'webmock'
 end
 
 

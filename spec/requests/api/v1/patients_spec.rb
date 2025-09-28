@@ -46,7 +46,6 @@ RSpec.describe "api/v1/patients", type: :request do
       end
     end
   end
-  
 
   path "/api/v1/patients/{patient_id}" do
     get("Показать пациента") do
