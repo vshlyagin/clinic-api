@@ -173,4 +173,51 @@ RSpec.describe "api/v1/patients", type: :request do
       end
     end
   end
+
+  path "/api/v1/patients/{patient_id}/calculate_bmr" do
+    post("Рассчитать BMR") do
+      tags "patients"
+      consumes "application/json"
+      produces "application/json"
+      parameter name: :patient_id, in: :path, type: :integer
+      parameter name: :body, in: :body, schema: {
+        type: :object,
+        properties: {
+          formula: { type: :string, enum: %w[mifflin harris] }
+        },
+        required: %w[formula]
+      }
+
+      let!(:patient) do
+        Patient.create!(
+          first_name: "Иван",
+          middle_name: "Иванович",
+          last_name: "Петров",
+          birthday: Date.new(1990, 1, 1),
+          gender: true,
+          height: 180,
+          weight: 75
+        )
+      end
+      let(:patient_id) { patient.id }
+      let(:body) { { formula: "mifflin" } }
+
+      response(201, "Рассчёт выполнен и сохранён") do
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data["patient_id"]).to eq(patient.id)
+          expect(data["formula"]).to eq("mifflin")
+          expect(data["result"]).to be_a(Float).or be_a(Integer)
+        end
+      end
+
+      response(422, "Некорректные данные") do
+        let(:body) { { formula: "unknown_formula" } }
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data["error"]).to eq("Unknown formula")
+        end
+      end
+    end
+  end
 end

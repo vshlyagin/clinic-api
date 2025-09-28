@@ -1,4 +1,5 @@
 class Patient < ApplicationRecord
+  has_many :bmr_calculations, dependent: :destroy
   has_and_belongs_to_many :doctors
 
   scope :by_full_name, ->(name) {
@@ -38,4 +39,26 @@ class Patient < ApplicationRecord
 
     query
   }
+
+  def age
+    return unless birthday
+    now = Date.today
+    now.year - birthday.year - ((now.month > birthday.month || (now.month == birthday.month && now.day >= birthday.day)) ? 0 : 1)
+  end
+
+  def calculate_bmr(formula)
+    case formula
+    when "mifflin"
+      base = 10 * weight + 6.25 * height - 5 * age
+      gender ? base + 5 : base - 161
+    when "harris"
+      if gender
+        66.473 + (13.752 * weight) + (5.003 * height) - (6.755 * age)
+      else
+        655.096 + (9.563 * weight) + (1.85 * height) - (4.679 * age)
+      end
+    else
+      raise ArgumentError, "Unknown formula: #{formula}"
+    end
+  end
 end

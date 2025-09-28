@@ -38,6 +38,20 @@ class Api::V1::PatientsController < ApplicationController
     head :no_content
   end
 
+  def calculate_bmr
+    formula = params[:formula]
+    result = patient.calculate_bmr(formula)
+
+    calculation = patient.bmr_calculations.create!(
+      formula: formula,
+      result: result
+    )
+
+    render json: { patient_id: patient.id, formula: formula, result: result }, status: :created
+  rescue ArgumentError => e
+    render json: { error: e.message }, status: :unprocessable_entity
+  end
+
   private
 
   def patient_params
@@ -48,7 +62,7 @@ class Api::V1::PatientsController < ApplicationController
     @patient ||= case action_name
                  when "create"
                    Patient.new
-                 when "update", "show", "destroy"
+                 when "update", "show", "destroy", "calculate_bmr"
                    Patient.find(params[:id])
                  end
     @patient.assign_attributes(patient_params) if action_name == "create" || action_name == "update"

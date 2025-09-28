@@ -241,3 +241,32 @@ paths:
           description: Пациент удалён
         '404':
           description: Пациент не найден
+  "/api/v1/patients/{patient_id}/calculate_bmr":
+    post:
+      summary: Рассчитать BMR
+      tags:
+      - patients
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '201':
+          description: Рассчёт выполнен и сохранён
+        '422':
+          description: Некорректные данные
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                formula:
+                  type: string
+                  enum:
+                  - mifflin
+                  - harris
+              required:
+              - formula

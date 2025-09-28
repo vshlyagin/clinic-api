@@ -6,7 +6,9 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :doctors
-      resources :patients
+      resources :patients do
+        post :calculate_bmr, on: :member
+      end
     end
   end
 end
