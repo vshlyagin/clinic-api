@@ -1,4 +1,7 @@
 class Api::V1::PatientsController < ApplicationController
+  require "net/http"
+  require "json"
+
   def index
     patients = Patient.all
       .by_full_name(params[:full_name])
@@ -60,6 +63,37 @@ class Api::V1::PatientsController < ApplicationController
     render json: { patient_id: patient.id, bmr_history: history }
   end
 
+  def calculate_bmi
+    unless patient.weight && patient.height
+      return render json: { error: "Weight and height are required to calculate BMI" }, status: :unprocessable_entity
+    end
+  
+    weight = patient.weight.to_f
+    height_m = patient.height.to_f / 100
+  
+    uri = URI.parse("https://bmicalculatorapi.vercel.app/api/bmi/#{weight}/#{height_m}")
+  
+    begin
+      response = Net::HTTP.get_response(uri)
+  
+      if response.is_a?(Net::HTTPSuccess)
+        bmi_result = JSON.parse(response.body)
+  
+        render json: {
+          patient_id: patient.id,
+          bmi: {
+            value: bmi_result["bmi"],
+            category: bmi_result["Category"]
+          }
+        }
+      else
+        render json: { error: "Failed to fetch BMI from external API" }, status: :bad_gateway
+      end
+    rescue StandardError => e
+      render json: { error: e.message }, status: :internal_server_error
+    end
+  end  
+
   private
 
   def patient_params
@@ -70,7 +104,7 @@ class Api::V1::PatientsController < ApplicationController
     @patient ||= case action_name
                  when "create"
                    Patient.new
-                 when "update", "show", "destroy", "calculate_bmr", "bmr_history"
+                 when "update", "show", "destroy", "calculate_bmr", "bmr_history", "calculate_bmi"
                    Patient.find(params[:id])
                  end
     @patient.assign_attributes(patient_params) if action_name == "create" || action_name == "update"

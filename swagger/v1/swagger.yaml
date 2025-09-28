@@ -299,3 +299,21 @@ paths:
           description: История расчетов BMR
         '404':
           description: Пациент не найден
+  "/api/v1/patients/{patient_id}/calculate_bmi":
+    get:
+      summary: Рассчитать BMI через внешний API
+      tags:
+      - patients
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Успешный расчёт BMI
+        '422':
+          description: Нет данных для веса/роста
+        '404':
+          description: Пациент не найден

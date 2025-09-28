@@ -3,6 +3,7 @@ Rails.application.routes.draw do
   mount Rswag::Api::Engine => '/api-docs'
 
   root to: redirect("/api-docs")
+
   namespace :api do
     namespace :v1 do
       resources :doctors
@@ -10,6 +11,7 @@ Rails.application.routes.draw do
         member do 
           post :calculate_bmr
           get :bmr_history
+          get :calculate_bmi
         end
       end
     end

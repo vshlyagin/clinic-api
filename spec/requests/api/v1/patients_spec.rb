@@ -269,5 +269,48 @@ RSpec.describe "api/v1/patients", type: :request do
         run_test!
       end
     end
-  end  
+  end
+
+  path "/api/v1/patients/{patient_id}/calculate_bmi" do
+    get("Рассчитать BMI через внешний API") do
+      tags "patients"
+      produces "application/json"
+      parameter name: :patient_id, in: :path, type: :integer
+
+      let!(:patient) do
+        Patient.create!(
+          first_name: "Иван",
+          middle_name: "Иванович",
+          last_name: "Петров",
+          birthday: Date.new(1990, 1, 1),
+          gender: true,
+          height: 180,
+          weight: 75
+        )
+      end
+      let(:patient_id) { patient.id }
+
+      response(200, "Успешный расчёт BMI") do
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data["patient_id"]).to eq(patient.id)
+          expect(data["bmi"]).to have_key("value")
+          expect(data["bmi"]).to have_key("category")
+        end
+      end
+
+      response(422, "Нет данных для веса/роста") do
+        before { patient.update!(weight: nil) }
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data["error"]).to eq("Weight and height are required to calculate BMI")
+        end
+      end
+
+      response(404, "Пациент не найден") do
+        let(:patient_id) { 0 }
+        run_test!
+      end
+    end
+  end
 end
