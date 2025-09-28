@@ -1,6 +1,10 @@
 class Api::V1::DoctorsController < ApplicationController
   def index
     doctors = Doctor.all
+
+    doctors = doctors.limit(params[:limit]) if params[:limit].present?
+    doctors = doctors.offset(params[:offset]) if params[:offset].present?
+
     render json: { doctors: doctors }
   end
 
