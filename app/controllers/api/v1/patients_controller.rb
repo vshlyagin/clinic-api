@@ -21,9 +21,7 @@ class Api::V1::PatientsController < ApplicationController
   def create
     if patient.valid?
       patient.save!
-      p patient_params[:doctor_ids]
       patient.doctor_ids = patient_params[:doctor_ids] if patient_params[:doctor_ids]&.any?
-      p patient.doctor_ids
       render json: { patient: patient, doctors: patient.doctors }, status: :created
     else
       render json: { errors: patient.errors.full_messages }, status: :unprocessable_entity

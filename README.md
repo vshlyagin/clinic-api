@@ -1,6 +1,5 @@
 # Clinic Service API
 
-API для работы с докторами и пациентами.
 Проект на **Ruby on Rails**, тесты — **RSpec**, документация — **Swagger (OpenAPI 3.0.3)** через [rswag](https://github.com/rswag/rswag).
 
 ## Сборка контейнера
