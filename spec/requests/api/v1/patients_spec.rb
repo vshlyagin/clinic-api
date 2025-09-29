@@ -22,14 +22,10 @@ RSpec.describe "api/v1/patients", type: :request do
             }
           }
   
-        let!(:patient1) do
-          Patient.create!(first_name: "Иван", middle_name: "Иванович", last_name: "Петров",
-                          birthday: 30.years.ago, gender: true, height: 180, weight: 75)
-        end
-        let!(:patient2) do
-          Patient.create!(first_name: "Петр", middle_name: "Петрович", last_name: "Сидоров",
-                          birthday: 25.years.ago, gender: true, height: 175, weight: 70)
-        end
+        let!(:patient1) { Patient.create!(first_name: "Иван", middle_name: "Иванович", last_name: "Петров",
+                                          birthday: 30.years.ago, gender: true, height: 180, weight: 75) }
+        let!(:patient2) { Patient.create!(first_name: "Петр", middle_name: "Петрович", last_name: "Сидоров",
+                                          birthday: 25.years.ago, gender: true, height: 175, weight: 70) }
   
         let(:full_name) { "Петр Сидоров" }
         let(:gender) { true }
@@ -44,106 +40,156 @@ RSpec.describe "api/v1/patients", type: :request do
           expect(body["patients"].first["id"]).to eq(patient2.id)
         end
       end
-    end
-  end
-
-  path "/api/v1/patients/{patient_id}" do
-    get("Показать пациента") do
-      tags "patients"
-      produces "application/json"
-      parameter name: :patient_id, in: :path, type: :integer
-
-      let!(:patient) do
-        Patient.create!(
-          first_name: "Иван",
-          middle_name: "Иванович",
-          last_name: "Петров",
-          birthday: Date.new(1990, 1, 1),
-          gender: true,
-          height: 180,
-          weight: 75
-        )
-      end
-      let(:patient_id) { patient.id }
-
-      response(200, "Пациент найден") do
-        run_test! do |response|
-          body = JSON.parse(response.body)
-          data = body["data"]
-          expect(data["id"]).to eq(patient.id)
+  
+      post("Создать пациента") do
+        tags "patients"
+        consumes "application/json"
+        produces "application/json"
+        parameter name: :patient, in: :body, schema: {"$ref" => "#/components/schemas/Patient"}
+  
+        let!(:doctor) { Doctor.create!(first_name: "Мария", middle_name: "Петровна", last_name: "Иванова") }
+        let!(:patient) do
+          p = Patient.create!(
+            first_name: "Анна",
+            middle_name: "Ивановна",
+            last_name: "Смирнова",
+            birthday: "1995-05-05",
+            gender: true,
+            height: 170,
+            weight: 60,
+            doctor_ids: [doctor.id]
+          )
+          p.doctors << doctor1
+          p
+        end
+  
+        response(201, "Пациент создан") do
+          run_test! do |response|
+            body = JSON.parse(response.body)
+            data = body["patient"]
+            expect(data["first_name"]).to eq("Анна")
+            expect(body["doctors"].first["id"]).to eq(doctor.id)
+          end
+        end
+  
+        response(422, "Некорректные данные") do
+          let(:patient) { { first_name: "" } }
+          run_test!
         end
       end
-
-      response(404, "Пациент не найден") do
-        let(:patient_id) { 0 }
-        run_test!
-      end
     end
-
-    patch("Обновить пациента") do
-      tags "patients"
-      consumes "application/json"
-      produces "application/json"
-      parameter name: :patient, in: :body, schema: {"$ref" => "#/components/schemas/Patient"}
-
-      let!(:patient) do
-        Patient.create!(
-          first_name: "Иван",
-          middle_name: "Иванович",
-          last_name: "Петров",
-          birthday: Date.new(1990, 1, 1),
-          gender: true,
-          height: 180,
-          weight: 75
-        )
-      end
-      let(:patient_id) { patient.id }
-      let(:patient) { { first_name: "Пётр", weight: 80 } }
-
-      response(200, "Пациент обновлён") do
-        run_test! do
-          updated = Patient.find(patient_id)
-          expect(updated.first_name).to eq("Пётр")
-          expect(updated.weight).to eq(80)
+  
+    path "/api/v1/patients/{patient_id}" do
+      get("Показать пациента") do
+        tags "patients"
+        produces "application/json"
+        parameter name: :patient_id, in: :path, type: :integer
+  
+        let!(:doctor) { Doctor.create!(first_name: "Мария", middle_name: "Петровна", last_name: "Иванова") }
+        let!(:patient) do
+          p = Patient.create!(
+            first_name: "Иван",
+            middle_name: "Иванович",
+            last_name: "Петров",
+            birthday: Date.new(1990, 1, 1),
+            gender: true,
+            height: 180,
+            weight: 75,
+            doctor_ids: [doctor.id]
+          )
+          p.doctors << doctor
+          p
+        end
+        let(:patient_id) { patient.id }
+  
+        response(200, "Пациент найден") do
+          run_test! do |response|
+            body = JSON.parse(response.body)
+            data = body["data"]
+            expect(data["id"]).to eq(patient.id)
+            expect(data["doctors"].first["id"]).to eq(doctor.id)
+          end
+        end
+  
+        response(404, "Пациент не найден") do
+          let(:patient_id) { 0 }
+          run_test!
         end
       end
-
-      response(422, "Некорректные данные") do
-        let(:patient) { { first_name: "" } }
-        run_test!
-      end
-    end
-
-    delete("Удалить пациента") do
-      tags "patients"
-      produces "application/json"
-      parameter name: :patient_id, in: :path, type: :integer
-
-      let!(:patient) do
-        Patient.create!(
-          first_name: "Иван",
-          middle_name: "Иванович",
-          last_name: "Петров",
-          birthday: Date.new(1990, 1, 1),
-          gender: true,
-          height: 180,
-          weight: 75
-        )
-      end
-      let(:patient_id) { patient.id }
-
-      response(204, "Пациент удалён") do
-        run_test! do
-          expect(Patient.find_by(id: patient_id)).to be_nil
+  
+      patch("Обновить пациента") do
+        tags "patients"
+        consumes "application/json"
+        produces "application/json"
+        parameter name: :patient_id, in: :path, type: :integer
+        parameter name: :patient, in: :body, schema: {"$ref" => "#/components/schemas/Patient"}
+  
+        let!(:doctor1) { Doctor.create!(first_name: "Мария", middle_name: "Петровна", last_name: "Иванова") }
+        let!(:doctor2) { Doctor.create!(first_name: "Алексей", middle_name: "Иваныч", last_name: "Смирнов") }
+  
+        let!(:patient) do
+          p = Patient.create!(
+            first_name: "Иван",
+            middle_name: "Иванович",
+            last_name: "Петров",
+            birthday: Date.new(1990, 1, 1),
+            gender: true,
+            height: 180,
+            weight: 75
+          )
+          p.doctors << doctor1
+          p
+        end
+        let(:patient_id) { patient.id }
+  
+        let(:patient) { { first_name: "Пётр", weight: 80, doctor_ids: [doctor2.id] } }
+  
+        response(200, "Пациент обновлён") do
+          run_test! do |response|
+            updated = Patient.find(patient_id)
+            expect(updated.first_name).to eq("Пётр")
+            expect(updated.weight).to eq(80)
+            expect(updated.doctors.map(&:id)).to contain_exactly(doctor2.id)
+          end
+        end
+  
+        response(422, "Некорректные данные") do
+          let(:patient) { { first_name: "" } }
+          run_test!
         end
       end
-
-      response(404, "Пациент не найден") do
-        let(:patient_id) { 0 }
-        run_test!
+  
+      delete("Удалить пациента") do
+        tags "patients"
+        produces "application/json"
+        parameter name: :patient_id, in: :path, type: :integer
+  
+        let!(:patient) do
+          Patient.create!(
+            first_name: "Иван",
+            middle_name: "Иванович",
+            last_name: "Петров",
+            birthday: Date.new(1990, 1, 1),
+            gender: true,
+            height: 180,
+            weight: 75
+          )
+        end
+        let(:patient_id) { patient.id }
+  
+        response(204, "Пациент удалён") do
+          run_test! do
+            expect(Patient.find_by(id: patient_id)).to be_nil
+          end
+        end
+  
+        response(404, "Пациент не найден") do
+          let(:patient_id) { 0 }
+          run_test!
+        end
       end
     end
-  end
+  end  
 
   path "/api/v1/patients/{patient_id}/calculate_bmr" do
     post("Рассчитать BMR") do

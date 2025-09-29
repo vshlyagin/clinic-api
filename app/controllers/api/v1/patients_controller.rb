@@ -21,7 +21,10 @@ class Api::V1::PatientsController < ApplicationController
   def create
     if patient.valid?
       patient.save!
-      render json: { patient: patient }, status: :created
+      p patient_params[:doctor_ids]
+      patient.doctor_ids = patient_params[:doctor_ids] if patient_params[:doctor_ids]&.any?
+      p patient.doctor_ids
+      render json: { patient: patient, doctors: patient.doctors }, status: :created
     else
       render json: { errors: patient.errors.full_messages }, status: :unprocessable_entity
     end
@@ -30,7 +33,8 @@ class Api::V1::PatientsController < ApplicationController
   def update
     if patient.valid?
       patient.save!
-      render json: { patient: patient }
+      patient.doctor_ids = patient_params[:doctor_ids] if patient_params[:doctor_ids]&.any?
+      render json: { patient: patient, doctors: patient.doctors }
     else
       render json: { errors: patient.errors.full_messages }, status: :unprocessable_entity
     end
@@ -51,8 +55,8 @@ class Api::V1::PatientsController < ApplicationController
     )
 
     render json: { patient_id: patient.id, formula: formula, result: result }, status: :created
-  rescue ArgumentError => e
-    render json: { error: e.message }, status: :unprocessable_entity
+    rescue ArgumentError => e
+      render json: { error: e.message }, status: :unprocessable_entity
   end
 
   def bmr_history
@@ -97,7 +101,7 @@ class Api::V1::PatientsController < ApplicationController
   private
 
   def patient_params
-    params.require(:patient).permit(:first_name, :middle_name, :last_name, :birthday, :gender, :height, :weight)
+    params.require(:patient).permit(:first_name, :middle_name, :last_name, :birthday, :gender, :height, :weight, doctor_ids: [])
   end
 
   def patient

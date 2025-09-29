@@ -31,6 +31,44 @@ RSpec.describe 'api/v1/doctors', type: :request do
         end
       end
     end
+
+    post("Создать доктора") do
+      tags "doctors"
+      consumes "application/json"
+      produces "application/json"
+      parameter name: :doctor, in: :body, schema: {
+        type: :object,
+        properties: {
+          doctor: { "$ref" => "#/components/schemas/Doctor" }
+        },
+        required: ["doctor"]
+      }
+
+      let(:doctor) do
+        {
+          doctor: {
+            first_name: "Иван",
+            middle_name: "Иванович",
+            last_name: "Петров"
+          }
+        }
+      end
+
+      response(201, 'Доктор создан') do
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body["doctor"]["first_name"]).to eq("Иван")
+          expect(Doctor.last.first_name).to eq("Иван")
+        end
+      end
+
+      response(422, 'Некорректные данные') do
+        let(:doctor) do
+          { doctor: { first_name: "" } }
+        end
+        run_test!
+      end
+    end
   end
 
   path '/api/v1/doctors/{doctor_id}' do

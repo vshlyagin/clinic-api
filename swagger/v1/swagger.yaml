@@ -82,6 +82,12 @@ components:
         weight:
           type: integer
           example: 75
+        doctor_ids:
+          type: array
+          items:
+            type: integer
+          description: "Список ID лечащих врачей"
+          example: []
         created_at:
           type: string
           format: date-time
@@ -121,6 +127,44 @@ paths:
                     type: array
                     items:
                       "$ref": "#/components/schemas/Doctor"
+    post:
+      summary: Создать доктора
+      tags:
+        - doctors
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                doctor:
+                  type: object
+                  properties:
+                    first_name:
+                      type: string
+                      example: Иван
+                    middle_name:
+                      type: string
+                      example: Иванович
+                    last_name:
+                      type: string
+                      example: Петров
+                  required:
+                    - first_name
+                    - last_name
+      responses:
+        '201':
+          description: Доктор создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  doctor:
+                    $ref: "#/components/schemas/Doctor"
+        '422':
+          description: Некорректные данные
   "/api/v1/doctors/{doctor_id}":
     parameters:
     - name: doctor_id
@@ -207,6 +251,24 @@ paths:
                     type: array
                     items:
                       "$ref": "#/components/schemas/Patient"
+    post:
+      summary: Создать пациента
+      tags:
+        - patients
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                patient:
+                  $ref: "#/components/schemas/Patient"
+      responses:
+        '201':
+          description: Пациент создан
+        '422':
+          description: Некорректные данные
   "/api/v1/patients/{patient_id}":
     get:
       summary: Показать пациента
@@ -226,18 +288,27 @@ paths:
     patch:
       summary: Обновить пациента
       tags:
-      - patients
-      parameters: []
+        - patients
+      parameters:
+        - name: patient_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                patient:
+                  $ref: "#/components/schemas/Patient"
       responses:
         '200':
           description: Пациент обновлён
         '422':
           description: Некорректные данные
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/Patient"
     delete:
       summary: Удалить пациента
       tags:
