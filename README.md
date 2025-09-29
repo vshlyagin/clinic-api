@@ -1,24 +1,25 @@
-# README
+# Clinic Service API
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+API для работы с докторами и пациентами.
+Проект на **Ruby on Rails**, тесты — **RSpec**, документация — **Swagger (OpenAPI 3.0.3)** через [rswag](https://github.com/rswag/rswag).
 
-Things you may want to cover:
+## Сборка контейнера
 
-* Ruby version
+```bash
+docker-compose build
+```
+## Подготовка базы данных
 
-* System dependencies
+```bash
+docker-compose exec web bash
+```
 
-* Configuration
+```bash
+rails db:migrate
+rails db:seed
+```
+## Запуск
 
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+```bash
+docker-compose -f docker-compose.yml up -d
+```
